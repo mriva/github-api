@@ -1,18 +1,24 @@
 import sys
-from api.datetimeutils import localized_timestamp
+from lib.datetimeutils import localized_timestamp
+from lib.consolecolors import color_status
 from api.runs import *
 from tabulate import tabulate
-
-try:
-    command = sys.argv[1]
-except IndexError:
-    raise SystemExit(f"Usage: {sys.argv[0]} <command> [command parameters]")
 
 dispatch = {
     'last': get_last_run,
     'all': get_all_runs,
     'status': get_repos_status
 }
+
+try:
+    command = sys.argv[1]
+
+    if command not in dispatch:
+        print('Wrong command')
+        exit(1)
+except IndexError:
+    raise SystemExit(f"Usage: {sys.argv[0]} <command> [command parameters]")
+
 
 try:
     if len(sys.argv) > 2:
@@ -36,7 +42,7 @@ for run in response:
     table_data.append([
         count,
         run['repository']['full_name'],
-        run['conclusion'] if run['conclusion'] else run['status'],
+        color_status(run['conclusion'] if run['conclusion'] else run['status']),
         run['head_branch'],
         timestamp.strftime('%Y-%m-%d %H:%M:%S%z'),
         run['head_commit']['author']['name'],
