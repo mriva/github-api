@@ -10,7 +10,7 @@ class Colors:
     UNDERLINE = '\033[4m'
 
 
-def color_status(status):
+def colored_status(status):
     if status == 'success':
         color = Colors.GREEN
     elif status == 'failure':

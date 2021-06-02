@@ -1,6 +1,7 @@
 import yaml
 from api.client import Client
 
+
 api_client = Client()
 
 

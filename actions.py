@@ -1,8 +1,9 @@
 import sys
-from lib.datetimeutils import localized_timestamp
-from lib.consolecolors import color_status
-from api.runs import *
 from tabulate import tabulate
+from lib.datetimeutils import *
+from lib.consolecolors import colored_status
+from api.runs import *
+
 
 dispatch = {
     'last': get_last_run,
@@ -14,37 +15,36 @@ try:
     command = sys.argv[1]
 
     if command not in dispatch:
-        print('Wrong command')
+        print(f"Command '{command}' is not defined.")
         exit(1)
 except IndexError:
     raise SystemExit(f"Usage: {sys.argv[0]} <command> [command parameters]")
 
 
-try:
-    if len(sys.argv) > 2:
-        args = sys.argv[2:]
-    else:
-        args = []
+if len(sys.argv) > 2:
+    args = sys.argv[2:]
+else:
+    args = []
 
-    response = dispatch[command](args)
-except Exception as e:
-    raise e
+response = dispatch[command](args)
 
-count = 1
-
-headers = ['nr', 'repository', 'result', 'branch', 'timestamp', 'committer', 'message']
+headers = ['nr', 'repository', 'result', 'branch', 'commit', 'timestamp', 'duration', 'committer', 'message']
 table_data = []
+count = 1
 
 for run in response:
     message = run['head_commit']['message'].split('\n')[0]
     timestamp = localized_timestamp(run['created_at'])
+    timestamp_end = localized_timestamp(run['updated_at'])
 
     table_data.append([
         count,
         run['repository']['full_name'],
-        color_status(run['conclusion'] if run['conclusion'] else run['status']),
+        colored_status(run['conclusion'] if run['conclusion'] else run['status']),
         run['head_branch'],
+        run['head_sha'][:7],
         timestamp.strftime('%Y-%m-%d %H:%M:%S%z'),
+        timestamp_diff(run['created_at'], run['updated_at']),
         run['head_commit']['author']['name'],
         message
     ])
